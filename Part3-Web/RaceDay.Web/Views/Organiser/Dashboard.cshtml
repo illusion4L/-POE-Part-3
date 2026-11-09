@@ -1,0 +1,59 @@
+@model DashboardViewModel
+@{ ViewData["Title"] = "Dashboard"; }
+<div class="page-header">
+    <div>
+        <h1>Organiser dashboard</h1>
+        <p>A summary of the events you've created.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="CreateEvent"><i class="bi bi-plus-lg" aria-hidden="true"></i> Create event</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-4"><div class="stat-tile"><div class="stat-value">@Model.TotalEvents</div><div class="stat-label">Events created</div></div></div>
+    <div class="col-sm-4"><div class="stat-tile"><div class="stat-value">@Model.Upcoming.Count</div><div class="stat-label">Upcoming events</div></div></div>
+    <div class="col-sm-4"><div class="stat-tile"><div class="stat-value">@Model.TotalEnrolments</div><div class="stat-label">Total enrolments</div></div></div>
+</div>
+
+@if (Model.Events.Count == 0)
+{
+    <div class="empty-state">
+        <i class="bi bi-calendar-plus" aria-hidden="true"></i>
+        <h2 class="h3 mt-2">Create your first event</h2>
+        <p class="text-muted">Add the details and a banner, then set up categories so participants can enrol.</p>
+        <a class="btn btn-primary" asp-action="CreateEvent">Create event</a>
+    </div>
+}
+else
+{
+    <div class="panel panel-flush">
+        <div class="table-responsive">
+            <table class="table table-rd">
+                <caption class="visually-hidden">Your events with enrolment totals</caption>
+                <thead>
+                    <tr><th scope="col">Event</th><th scope="col">Date</th><th scope="col" class="text-end">Enrolments</th><th scope="col" class="text-end">Categories</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr>
+                </thead>
+                <tbody>
+                @foreach (var e in Model.Events.OrderBy(e => e.EventDate.Date < DateTime.Today).ThenBy(e => e.EventDate.Date >= DateTime.Today ? e.EventDate : DateTime.MaxValue).ThenByDescending(e => e.EventDate))
+                {
+                    <tr>
+                        <td>
+                            <a class="fw-semibold" asp-action="EditEvent" asp-route-id="@e.EventId">@e.Name</a>
+                            <div class="text-muted small">@e.Location · @e.EventType · @Fmt.Km(e.Distance)</div>
+                        </td>
+                        <td>
+                            @Fmt.Date(e.EventDate)
+                            <div class="small @(e.EventDate.Date >= DateTime.Today ? "text-success fw-semibold" : "text-muted")">@Fmt.Countdown(e.EventDate)</div>
+                        </td>
+                        <td class="text-end"><span class="position">@e.EnrolmentCount</span></td>
+                        <td class="text-end">@e.CategoryCount</td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-outline-primary" asp-action="Enrolments" asp-route-id="@e.EventId">Enrolments</a>
+                            <a class="btn btn-sm btn-outline-primary" asp-action="Results" asp-route-id="@e.EventId">Results</a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

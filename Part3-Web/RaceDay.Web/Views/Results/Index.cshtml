@@ -1,0 +1,55 @@
+@model List<MyResultDto>
+@{ ViewData["Title"] = "My results"; }
+<div class="page-header">
+    <div>
+        <h1>My results</h1>
+        <p>Your race history across every completed event.</p>
+    </div>
+    @if (Model.Count > 0)
+    {
+        <div class="stat-tile" style="min-width: 11rem"><div class="stat-value">@Model.Count</div><div class="stat-label">@(Model.Count == 1 ? "race finished" : "races finished")</div></div>
+    }
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="empty-state">
+        <i class="bi bi-trophy" aria-hidden="true"></i>
+        <h2 class="h3 mt-2">No results yet</h2>
+        <p class="text-muted">Once an organiser publishes your finish time it will show up here.</p>
+        <a class="btn btn-primary" asp-controller="Enrolments" asp-action="Index">See my enrolments</a>
+    </div>
+}
+else
+{
+    <div class="panel panel-flush">
+        <div class="table-responsive">
+            <table class="table table-rd">
+                <thead>
+                    <tr><th scope="col">Event</th><th scope="col">Date</th><th scope="col">Category</th><th scope="col">Finish time</th><th scope="col">Position</th></tr>
+                </thead>
+                <tbody>
+                @foreach (var r in Model)
+                {
+                    <tr>
+                        <td><a class="fw-semibold" asp-controller="Events" asp-action="Details" asp-route-id="@r.EventId">@r.EventName</a></td>
+                        <td>@Fmt.Date(r.EventDate)</td>
+                        <td>@r.CategoryName</td>
+                        <td class="finish-time">@Fmt.Time(r.FinishTime)</td>
+                        <td>
+                            @if (r.FinishPosition is int pos)
+                            {
+                                <span class="position">@Fmt.Ordinal(pos)</span> <small class="text-muted">out of @r.TotalFinishers finishers</small>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Not recorded</span>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

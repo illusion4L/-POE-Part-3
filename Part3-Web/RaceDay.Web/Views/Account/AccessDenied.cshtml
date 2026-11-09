@@ -1,0 +1,7 @@
+@{ ViewData["Title"] = "Access denied"; Context.Response.StatusCode = 403; }
+<div class="status-page text-center">
+    <div class="status-code">403</div>
+    <h1 class="h2">That page isn't for your account</h1>
+    <p class="text-muted mx-auto" style="max-width: 32rem">Organiser and Participant accounts see different parts of RaceDay. Head back to the pages made for you.</p>
+    <a class="btn btn-primary mt-3" asp-controller="Home" asp-action="Index">Take me home</a>
+</div>

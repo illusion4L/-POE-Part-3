@@ -1,0 +1,35 @@
+name: RaceDay CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore RaceDay.sln
+
+      - name: Build
+        run: dotnet build RaceDay.sln --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test RaceDay.sln --no-build --configuration Release --verbosity normal
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build web image
+        run: docker build -t raceday-web ./Part3-Web
+      - name: Build API image
+        run: docker build -t raceday-api ./Part2-API

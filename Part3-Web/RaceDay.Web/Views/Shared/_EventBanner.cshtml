@@ -1,0 +1,10 @@
+@* Banner image (served from Azure Blob Storage via the API) or a branded placeholder *@
+@model EventDto
+@if (Model.HasBanner)
+{
+    <img class="event-banner-img" src="@Url.Action("Banner", "Events", new { id = Model.EventId })" alt="Banner for @Model.Name" loading="lazy" />
+}
+else
+{
+    <div class="event-banner-placeholder" aria-hidden="true"><i class="bi @Fmt.EventIcon(Model.EventType)"></i></div>
+}

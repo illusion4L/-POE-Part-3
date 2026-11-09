@@ -1,0 +1,50 @@
+@model List<OrganiserEventSummaryDto>
+@{ ViewData["Title"] = "My events"; }
+<div class="page-header">
+    <div>
+        <h1>My events</h1>
+        <p>Create, edit and remove your events.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="CreateEvent"><i class="bi bi-plus-lg" aria-hidden="true"></i> Create event</a>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="empty-state">
+        <i class="bi bi-calendar-plus" aria-hidden="true"></i>
+        <h2 class="h3 mt-2">No events yet</h2>
+        <p class="text-muted">Your events will be listed here once you create one.</p>
+        <a class="btn btn-primary" asp-action="CreateEvent">Create event</a>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var e in Model)
+        {
+            <div class="col-md-6 col-xl-4">
+                <article class="event-card h-100">
+                    <div class="event-card-media">
+                        <partial name="_EventBanner" model="e" />
+                        <partial name="_Bib" model="e.EventDate" />
+                    </div>
+                    <div class="event-card-body">
+                        <div class="event-type"><i class="bi @Fmt.EventIcon(e.EventType)" aria-hidden="true"></i> @e.EventType · @Fmt.Km(e.Distance)</div>
+                        <h2 class="event-card-title">@e.Name</h2>
+                        <ul class="event-meta list-unstyled">
+                            <li><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> @e.Location</li>
+                            <li><i class="bi bi-people-fill" aria-hidden="true"></i> @e.EnrolmentCount enrolled · @e.CategoryCount @(e.CategoryCount == 1 ? "category" : "categories")</li>
+                        </ul>
+                        <div class="d-flex flex-wrap gap-2 mt-auto">
+                            <a class="btn btn-sm btn-navy" asp-action="EditEvent" asp-route-id="@e.EventId"><i class="bi bi-pencil-fill" aria-hidden="true"></i> Edit</a>
+                            <a class="btn btn-sm btn-outline-primary" asp-action="Categories" asp-route-id="@e.EventId">Categories</a>
+                            <form asp-action="DeleteEvent" asp-route-id="@e.EventId" method="post" data-confirm="Delete @e.Name? This also removes its categories, enrolments and results." class="ms-auto">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Delete @e.Name"><i class="bi bi-trash3-fill" aria-hidden="true"></i> Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        }
+    </div>
+}

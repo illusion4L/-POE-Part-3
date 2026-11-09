@@ -1,0 +1,108 @@
+@{
+    var user = Context.Session.GetUser();
+    var controller = (string?)ViewContext.RouteData.Values["controller"] ?? "";
+    var action = (string?)ViewContext.RouteData.Values["action"] ?? "";
+
+    string Active(string c, string? a = null) =>
+        string.Equals(controller, c, StringComparison.OrdinalIgnoreCase) && (a is null || string.Equals(action, a, StringComparison.OrdinalIgnoreCase))
+            ? " active" : "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@(ViewData["Title"] is string t && t.Length > 0 ? t + " · RaceDay" : "RaceDay")</title>
+    <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
+    <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="role-@(user?.Role.ToLowerInvariant() ?? "guest")">
+    <a class="visually-hidden-focusable skip-link" href="#main">Skip to content</a>
+
+    <header>
+        <nav class="navbar navbar-expand-lg rd-navbar" aria-label="Main navigation">
+            <div class="container">
+                <a class="navbar-brand rd-brand" asp-controller="Home" asp-action="Index" aria-label="RaceDay home">
+                    <svg class="rd-logo" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">
+                        <rect width="32" height="32" rx="7" fill="#FF5A1F" />
+                        <path d="M7 22 L14 10 L19 10 L12 22 Z M16 22 L23 10 L27 10 L20 22 Z" fill="#0E1B2C" />
+                    </svg>
+                    <span>Race<span class="rd-brand-day">Day</span></span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
+                        aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navMenu">
+                    <ul class="navbar-nav me-auto">
+                        @if (user is null)
+                        {
+                            <li class="nav-item"><a class="nav-link@(Active("Home"))" asp-controller="Home" asp-action="Index"><i class="bi bi-flag-fill" aria-hidden="true"></i> Upcoming events</a></li>
+                        }
+                        else if (user.IsOrganiser)
+                        {
+                            <li class="nav-item"><a class="nav-link@(Active("Organiser", "Dashboard"))" asp-controller="Organiser" asp-action="Dashboard"><i class="bi bi-speedometer2" aria-hidden="true"></i> Dashboard</a></li>
+                            <li class="nav-item"><a class="nav-link@(Active("Organiser", "Events"))" asp-controller="Organiser" asp-action="Events"><i class="bi bi-calendar-event-fill" aria-hidden="true"></i> My events</a></li>
+                            <li class="nav-item"><a class="nav-link@(Active("Organiser", "CreateEvent"))" asp-controller="Organiser" asp-action="CreateEvent"><i class="bi bi-plus-circle-fill" aria-hidden="true"></i> New event</a></li>
+                        }
+                        else
+                        {
+                            <li class="nav-item"><a class="nav-link@(Active("Home"))@(Active("Events"))" asp-controller="Home" asp-action="Index"><i class="bi bi-flag-fill" aria-hidden="true"></i> Upcoming events</a></li>
+                            <li class="nav-item"><a class="nav-link@(Active("Enrolments"))" asp-controller="Enrolments" asp-action="Index"><i class="bi bi-ticket-perforated-fill" aria-hidden="true"></i> My enrolments</a></li>
+                            <li class="nav-item"><a class="nav-link@(Active("Results"))" asp-controller="Results" asp-action="Index"><i class="bi bi-trophy-fill" aria-hidden="true"></i> My results</a></li>
+                        }
+                    </ul>
+
+                    <div class="d-flex align-items-lg-center flex-column flex-lg-row gap-2">
+                        @if (user is null)
+                        {
+                            <a class="btn btn-link rd-login-link" asp-controller="Account" asp-action="Login">Log in</a>
+                            <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Register">Create account</a>
+                        }
+                        else
+                        {
+                            <span class="rd-user">
+                                <i class="bi bi-person-circle" aria-hidden="true"></i>
+                                <span>@user.FullName</span>
+                                <span class="rd-role">@user.Role</span>
+                            </span>
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                                <button type="submit" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Log out</button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main" class="rd-main">
+        @if (ViewData["FullBleed"] is not true)
+        {
+            <div class="container py-4">
+                <partial name="_Alerts" />
+                @RenderBody()
+            </div>
+        }
+        else
+        {
+            @RenderBody()
+        }
+    </main>
+
+    <footer class="rd-footer">
+        <div class="container d-flex flex-column flex-sm-row justify-content-between gap-1">
+            <span><strong>RaceDay</strong> · Run, walk and ride events</span>
+            <span>@DateTime.Today.Year</span>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

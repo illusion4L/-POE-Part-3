@@ -1,0 +1,112 @@
+@model EventDetailsViewModel
+@{
+    var ev = Model.Event;
+    ViewData["Title"] = ev.Name;
+    var user = Context.Session.GetUser();
+}
+<nav aria-label="Breadcrumb" class="mb-3">
+    <a asp-controller="Home" asp-action="Index" class="text-decoration-none"><i class="bi bi-arrow-left" aria-hidden="true"></i> All events</a>
+</nav>
+
+<div class="event-hero"><partial name="_EventBanner" model="ev" /></div>
+
+<div class="event-head">
+    <partial name="_Bib" model="ev.EventDate" />
+    <div>
+        <div class="event-type mb-1"><i class="bi @Fmt.EventIcon(ev.EventType)" aria-hidden="true"></i> @ev.EventType</div>
+        <h1 class="mb-1">@ev.Name</h1>
+        <div class="text-muted">@Fmt.DateTime_(ev.EventDate)</div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="panel">
+            <h2 class="panel-title">About this event</h2>
+            @if (string.IsNullOrWhiteSpace(ev.Description))
+            {
+                <p class="text-muted mb-0">The organiser hasn't added a description yet.</p>
+            }
+            else
+            {
+                <p class="description mb-0">@ev.Description</p>
+            }
+            <ul class="fact-list">
+                <li><span class="fact-label">Where</span><span class="fact-value">@ev.Location</span></li>
+                <li><span class="fact-label">When</span><span class="fact-value">@Fmt.Date(ev.EventDate)</span></li>
+                <li><span class="fact-label">Start time</span><span class="fact-value">@ev.EventDate.ToString("HH:mm")</span></li>
+                <li><span class="fact-label">Distance</span><span class="fact-value">@Fmt.Km(ev.Distance)</span></li>
+                <li><span class="fact-label">Type</span><span class="fact-value">@ev.EventType</span></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="panel">
+            <h2 class="panel-title">Categories</h2>
+
+            @if (ev.Categories.Count == 0)
+            {
+                <p class="text-muted mb-0">The organiser hasn't added categories yet, so enrolment isn't open.</p>
+            }
+            else if (user is { IsParticipant: true })
+            {
+                if (Model.MyEnrolment is { } mine)
+                {
+                    <div class="alert alert-light border mb-3">
+                        You're enrolled in <strong>@mine.CategoryName</strong>. <partial name="_StatusBadge" model="mine.Status" />
+                    </div>
+                    <a asp-controller="Enrolments" asp-action="Index" class="btn btn-outline-primary">View my enrolments</a>
+                }
+                else if (Model.IsPast)
+                {
+                    <p class="text-muted mb-0">This event has already taken place, so enrolment is closed.</p>
+                }
+                else
+                {
+                    <form asp-controller="Enrolments" asp-action="Enrol" method="post">
+                        <input type="hidden" name="eventId" value="@ev.EventId" />
+                        <fieldset>
+                            <legend class="visually-hidden">Choose a category</legend>
+                            @foreach (var c in ev.Categories)
+                            {
+                                <label class="category-option">
+                                    <input type="radio" name="categoryId" value="@c.CategoryId" />
+                                    <span>
+                                        <span class="category-name d-block">@c.Name</span>
+                                        <span class="category-meta">@Fmt.AgeRange(c.MinAge, c.MaxAge) · @Fmt.Km(c.CategoryDistance)</span>
+                                    </span>
+                                </label>
+                            }
+                        </fieldset>
+                        <button type="submit" class="btn btn-primary w-100 mt-2">Enrol now</button>
+                    </form>
+                }
+            }
+            else
+            {
+                @foreach (var c in ev.Categories)
+                {
+                    <div class="category-option" style="cursor:default">
+                        <span>
+                            <span class="category-name d-block">@c.Name</span>
+                            <span class="category-meta">@Fmt.AgeRange(c.MinAge, c.MaxAge) · @Fmt.Km(c.CategoryDistance)</span>
+                        </span>
+                    </div>
+                }
+                @if (user is null)
+                {
+                    <a class="btn btn-primary w-100 mt-2" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path">Log in to enrol</a>
+                }
+                else if (user.IsOrganiser)
+                {
+                    <p class="text-muted small mt-2 mb-0">You're logged in as an Organiser. Only Participant accounts can enrol.</p>
+                    @if (user.UserId == ev.OrganiserId)
+                    {
+                        <a class="btn btn-outline-primary btn-sm mt-2" asp-controller="Organiser" asp-action="EditEvent" asp-route-id="@ev.EventId">Manage this event</a>
+                    }
+                }
+            }
+        </div>
+    </div>
+</div>

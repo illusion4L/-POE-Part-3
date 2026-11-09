@@ -1,0 +1,12 @@
+@* Flash messages set by controllers via TempData *@
+@foreach (var (key, css, icon) in new[] { ("Success", "success", "bi-check-circle-fill"), ("Warning", "warning", "bi-exclamation-triangle-fill"), ("Error", "danger", "bi-x-octagon-fill") })
+{
+    if (TempData[key] is string message && message.Length > 0)
+    {
+        <div class="alert alert-@css rd-alert d-flex align-items-start gap-2 alert-dismissible fade show" role="alert">
+            <i class="bi @icon mt-1" aria-hidden="true"></i>
+            <div>@message</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Dismiss"></button>
+        </div>
+    }
+}

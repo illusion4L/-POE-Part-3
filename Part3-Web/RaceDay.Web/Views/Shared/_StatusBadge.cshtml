@@ -1,0 +1,10 @@
+@model string
+@{
+    var (css, icon) = Model switch
+    {
+        "Confirmed" => ("status-confirmed", "bi-check-circle-fill"),
+        "Cancelled" => ("status-cancelled", "bi-x-circle-fill"),
+        _ => ("status-pending", "bi-hourglass-split")
+    };
+}
+<span class="status-badge @css"><i class="bi @icon" aria-hidden="true"></i>@Model</span>

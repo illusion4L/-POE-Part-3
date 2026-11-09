@@ -1,0 +1,93 @@
+@model CategoriesPageViewModel
+@{
+    ViewData["Title"] = "Categories · " + Model.Event.Name;
+    var ev = Model.Event;
+    var form = Model.Form;
+    var editing = form.CategoryId.HasValue;
+}
+<div class="page-header">
+    <div>
+        <h1>@ev.Name</h1>
+        <p>@Fmt.DateTime_(ev.EventDate) · @ev.Location</p>
+    </div>
+</div>
+<partial name="_EventTabs" model="ev" view-data='new ViewDataDictionary(ViewData) { { "Tab", "categories" } }' />
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="panel panel-flush">
+            @if (ev.Categories.Count == 0)
+            {
+                <div class="empty-state border-0">
+                    <i class="bi bi-tags" aria-hidden="true"></i>
+                    <h2 class="h3 mt-2">No categories yet</h2>
+                    <p class="text-muted mb-0">Participants can't enrol until you add at least one.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-rd">
+                        <thead><tr><th scope="col">Category</th><th scope="col">Ages</th><th scope="col">Distance</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
+                        <tbody>
+                        @foreach (var c in ev.Categories)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@c.Name</td>
+                                <td>@Fmt.AgeRange(c.MinAge, c.MaxAge)</td>
+                                <td>@Fmt.Km(c.CategoryDistance)</td>
+                                <td class="text-end text-nowrap">
+                                    <a class="btn btn-sm btn-outline-primary" asp-action="Categories" asp-route-id="@ev.EventId" asp-route-edit="@c.CategoryId">Edit</a>
+                                    <form asp-action="DeleteCategory" asp-route-id="@ev.EventId" asp-route-categoryId="@c.CategoryId" method="post" class="d-inline"
+                                          data-confirm="Remove @c.Name? Anyone enrolled in it (and their results) will be removed too.">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Remove @c.Name"><i class="bi bi-trash3-fill" aria-hidden="true"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="panel">
+            <h2 class="panel-title">@(editing ? "Edit category" : "Add a category")</h2>
+            <form asp-action="SaveCategory" asp-route-id="@ev.EventId" method="post" novalidate>
+                <div asp-validation-summary="ModelOnly"></div>
+                <input type="hidden" asp-for="Form.CategoryId" />
+
+                <div class="mb-3">
+                    <label asp-for="Form.Name" class="form-label">Category name</label>
+                    <input asp-for="Form.Name" class="form-control" maxlength="50" placeholder="e.g. Under 20, Senior, 21 km" />
+                    <span asp-validation-for="Form.Name" class="field-validation-error"></span>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label asp-for="Form.MinAge" class="form-label"></label>
+                        <input asp-for="Form.MinAge" class="form-control" type="number" min="0" max="120" />
+                        <span asp-validation-for="Form.MinAge" class="field-validation-error"></span>
+                    </div>
+                    <div class="col-6">
+                        <label asp-for="Form.MaxAge" class="form-label"></label>
+                        <input asp-for="Form.MaxAge" class="form-control" type="number" min="0" max="120" />
+                        <span asp-validation-for="Form.MaxAge" class="field-validation-error"></span>
+                    </div>
+                </div>
+                <div class="form-text mb-3 mt-n2">Leave the ages empty for an open category.</div>
+                <div class="mb-4">
+                    <label asp-for="Form.CategoryDistance" class="form-label"></label>
+                    <input asp-for="Form.CategoryDistance" class="form-control" type="number" step="0.01" min="0.01" inputmode="decimal" />
+                    <span asp-validation-for="Form.CategoryDistance" class="field-validation-error"></span>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">@(editing ? "Save category" : "Add category")</button>
+                    @if (editing) { <a class="btn btn-outline-secondary" asp-action="Categories" asp-route-id="@ev.EventId">Cancel</a> }
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

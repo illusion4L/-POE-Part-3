@@ -1,0 +1,62 @@
+@model List<EnrolmentDto>
+@{ ViewData["Title"] = "My enrolments"; }
+<div class="page-header">
+    <div>
+        <h1>My enrolments</h1>
+        <p>Every event you've entered and where each enrolment stands.</p>
+    </div>
+    <a class="btn btn-primary" asp-controller="Home" asp-action="Index"><i class="bi bi-search" aria-hidden="true"></i> Find events</a>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="empty-state">
+        <i class="bi bi-ticket-perforated" aria-hidden="true"></i>
+        <h2 class="h3 mt-2">You haven't enrolled in anything yet</h2>
+        <p class="text-muted">Browse upcoming events and pick a category to get started.</p>
+        <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Browse events</a>
+    </div>
+}
+else
+{
+    <div class="panel panel-flush">
+        <div class="table-responsive">
+            <table class="table table-rd">
+                <thead>
+                    <tr><th scope="col">Event</th><th scope="col">Date</th><th scope="col">Category</th><th scope="col">Status</th><th scope="col">Enrolled on</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr>
+                </thead>
+                <tbody>
+                @foreach (var e in Model)
+                {
+                    <tr>
+                        <td>
+                            <a class="fw-semibold" asp-controller="Events" asp-action="Details" asp-route-id="@e.EventId">@e.EventName</a>
+                            <div class="text-muted small">@e.EventLocation</div>
+                        </td>
+                        <td>@Fmt.Date(e.EventDate)</td>
+                        <td>@e.CategoryName</td>
+                        <td><partial name="_StatusBadge" model="e.Status" /></td>
+                        <td>@Fmt.Date(e.EnrolmentDate)</td>
+                        <td class="text-end">
+                            @if (e.HasResult)
+                            {
+                                <a class="btn btn-sm btn-outline-primary" asp-controller="Results" asp-action="Index">See result</a>
+                            }
+                            else
+                            {
+                                <form asp-action="Withdraw" asp-route-id="@e.EnrolmentId" method="post" data-confirm="Withdraw from @e.EventName?" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Withdraw</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <p class="text-muted small mt-3 mb-0">
+        <partial name="_StatusBadge" model="@("Pending")" /> means the organiser hasn't confirmed your place yet.
+        <partial name="_StatusBadge" model="@("Confirmed")" /> means you're on the start list.
+    </p>
+}

@@ -1,0 +1,17 @@
+@model EventDto
+<article class="event-card h-100">
+    <a class="event-card-media" asp-controller="Events" asp-action="Details" asp-route-id="@Model.EventId" tabindex="-1" aria-hidden="true">
+        <partial name="_EventBanner" model="Model" />
+        <partial name="_Bib" model="Model.EventDate" />
+    </a>
+    <div class="event-card-body">
+        <div class="event-type"><i class="bi @Fmt.EventIcon(Model.EventType)" aria-hidden="true"></i> @Model.EventType</div>
+        <h3 class="event-card-title"><a asp-controller="Events" asp-action="Details" asp-route-id="@Model.EventId">@Model.Name</a></h3>
+        <ul class="event-meta list-unstyled">
+            <li><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> @Model.Location</li>
+            <li><i class="bi bi-signpost-split-fill" aria-hidden="true"></i> @Fmt.Km(Model.Distance)</li>
+            <li><i class="bi bi-clock-fill" aria-hidden="true"></i> @Model.EventDate.ToString("HH:mm") start</li>
+        </ul>
+        <a class="btn btn-outline-primary btn-sm mt-auto" asp-controller="Events" asp-action="Details" asp-route-id="@Model.EventId">View event<span class="visually-hidden"> @Model.Name</span></a>
+    </div>
+</article>

@@ -1,0 +1,45 @@
+# Whole RaceDay stack with ONE command:   docker compose up --build
+#   Web app (MVC)   -> http://localhost:8080
+#   API + Swagger   -> http://localhost:5080/swagger
+services:
+  web:
+    build: ./Part3-Web
+    ports:
+      - "8080:8080"
+    environment:
+      Api__BaseUrl: http://api:8080        # the MVC app only ever talks to the API
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  api:
+    build: ./Part2-API
+    ports:
+      - "5080:8080"
+    environment:
+      ConnectionStrings__RaceDayDb: "Server=sqlserver,1433;Database=RaceDayDb;User Id=sa;Password=RaceDay_Str0ng!Pass;TrustServerCertificate=True;"
+      # Azurite (local Azure Blob Storage emulator). For real Azure, replace with your storage account connection string.
+      AzureBlobStorage__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+      AzureBlobStorage__ContainerName: event-banners
+    depends_on:
+      - sqlserver
+      - azurite
+    restart: unless-stopped
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "RaceDay_Str0ng!Pass"
+    volumes:
+      - sqldata:/var/opt/mssql
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    command: azurite-blob --blobHost 0.0.0.0 --skipApiVersionCheck
+    volumes:
+      - blobdata:/data
+
+volumes:
+  sqldata:
+  blobdata:
